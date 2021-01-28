@@ -8,6 +8,7 @@ import 'mainPage.dart';
 
 
 int curPage = 0;
+  GlobalKey <ScaffoldState> scaff = new GlobalKey<ScaffoldState>();
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,7 +17,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  GlobalKey <ScaffoldState> scaff = new GlobalKey<ScaffoldState>();
 
   changePage(val){
     setState((){

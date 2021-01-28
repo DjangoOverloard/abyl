@@ -1,4 +1,11 @@
+import 'package:abyl/fetch.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+
+import 'HomePage.dart';
+
+List<DocumentSnapshot> normDocs = [];
 
 class WorkPage extends StatefulWidget {
   @override
@@ -6,14 +13,20 @@ class WorkPage extends StatefulWidget {
 }
 
 class _WorkPageState extends State<WorkPage> {
-  var areaTotal; 
-  var areaFloor;
-  var buildingHeight;
-  var buildingMaxVisits;
-  bool techFloorExists = true;
-  var areaTechFloor; 
-  bool basementFloorExists = true;
+  bool loading;
+  @override
+  void initState() {
+    super.initState();
+  }
 
+  fetch() {
+    loading = true;
+    setState(() {});
+    fetchNorm(curValue, () {
+      loading = false;
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +38,7 @@ class _WorkPageState extends State<WorkPage> {
         children: [
           Center(
             child: Text('Введите данные здания',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           ),
           SizedBox(height: 40),
           Wrap(
@@ -33,51 +46,27 @@ class _WorkPageState extends State<WorkPage> {
             children: [
               Container(
                 width: 300,
-                child: Column(
-                  children: [
-                    typeSelector(),
-                    customInput('Общая площадь, м^2', areaTotal),
-                    customInput('Площадь этажа, м^2', areaFloor), 
-                    customInput('Высота здания, м', buildingHeight), 
-                    customInput('Макс. Посещаемость', buildingMaxVisits), 
-                  ],
-                ),
+                child: typeSelector(() {
+                  setState(() {});
+                }),
               ),
-              Container(
-                width: 300, 
-                child: Column(
-                  children: [
-                    defaultBoolInput('Наличие технического этажа', techFloorExists, (){setState((){});}),
-                    techFloorExists?customInput('Площадь технического этажа, м^2', areaTechFloor):SizedBox.shrink(),
-                    defaultBoolInput('Наличие подвала и/или цокольного этажа', basementFloorExists, (){setState((){});}),
-                    SizedBox(height: 10),
-                     Align(
-            alignment:Alignment.centerRight, 
-            child: Container(
-              height: 35, 
-              width: 100,
-              decoration: BoxDecoration(
-                color: Colors.black12, 
-                borderRadius: BorderRadius.circular(5), 
-                border: Border.all(color: Colors.black, width: 1),
-              ),
-              child: Center(
-                child: Text('Подтвердить'),
-              ),
-            ),
-          ),
-                  ],
-                ),
-              ),
+              acceptButton(() {
+                fetch();
+              }),
             ],
           ),
+          SizedBox(height: 20),
+          Text(msg),
+          SizedBox(height: 20),
+          tableBuilder(loading, w)
         ],
       ),
     );
   }
 }
 
-Widget typeSelector() {
+String curValue = '';
+Widget typeSelector(setst) {
   return Container(
     height: 40,
     width: 300,
@@ -91,87 +80,81 @@ Widget typeSelector() {
       child: DropdownButton<String>(
         underline: SizedBox.shrink(),
         isExpanded: true,
+        value: curValue != '' ? curValue : null,
         hint: Text('Тип здания'),
-        items: <String>['A', 'B', 'C', 'D'].map((String value) {
+        items: <String>['Для всех', 'Ф1', 'Ф2', 'Ф3', 'Ф4', 'Ф5']
+            .map((String value) {
           return new DropdownMenuItem<String>(
             value: value,
             child: new Text(value),
           );
         }).toList(),
-        onChanged: (_) {},
+        onChanged: (_) {
+          curValue = _;
+          setst();
+        },
       ),
     ),
   );
 }
 
-Widget customInput(name, value) {
-  return Column(
-    children: [
-      SizedBox(height: 10), 
-      SizedBox(
-        width: 300,
-        child: Row(
-          children: [
-            Expanded(
-                child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(name,
-                        style: TextStyle(
-                          fontSize: 18,
-                        )))),
-            SizedBox(width: 10),
-            Container(
-              height: 40,
-              width: 100,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(5),
-                border: Border.all(color: Colors.black, width: 1),
-              ),
-              child: Padding(
-                padding: EdgeInsets.only(left: 5),
-                          child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Значение',
-                    border: InputBorder.none,
-                  ),
-                  onChanged: (val) {
-                    value = val;
-                  },
-                ),
-              ),
-            ),
-          ],
+Widget acceptButton(callBuild) {
+  return MouseRegion(
+    cursor: SystemMouseCursors.click,
+    child: GestureDetector(
+      onTap: () {
+        if (curValue != '') {
+          callBuild();
+        } else {
+          scaff.currentState.showSnackBar(SnackBar(
+            content: Text('Выберите тип здания'),
+          ));
+        }
+      },
+      child: Container(
+        height: 35,
+        width: 100,
+        decoration: BoxDecoration(
+          color: Colors.black12,
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(color: Colors.black, width: 1),
+        ),
+        child: Center(
+          child: Text('Подтвердить'),
         ),
       ),
-    ],
+    ),
   );
 }
 
-Widget defaultBoolInput(name, value, onTap){
-  return Column(
-    children: [
-       SizedBox(height: 10), 
-      SizedBox(
-        width: 300, 
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(name, style: TextStyle(
-                fontSize: 18, 
-              )),
-            ),
-            SizedBox(width: 10),
-            SizedBox(height: 35, width: 40, child: Checkbox(
-              value: value, 
-              onChanged: (val){
-                value = val;
-                onTap();
-              },
-            ),),
-          ],
-        ),
-      ),
-    ],
-  );
+Widget tableBuilder(loading, w) {
+  return Center(
+      child: loading != null
+          ? (loading
+              ? Container(
+                  height: 50, width: 50, child: CircularProgressIndicator())
+              : Container(
+                  child: Table(
+                      border: TableBorder(
+                          top: BorderSide(width: 1),
+                          left: BorderSide(width: 1),
+                          right: BorderSide(width: 1),
+                          bottom: BorderSide(width: 1), horizontalInside: BorderSide(width: 1,), verticalInside: BorderSide(width:1)),
+                      columnWidths: {1: FractionColumnWidth(0.95)},
+                      children: List.generate(
+                          normDocs.length,
+                          (index) => TableRow(children: [
+                                Padding(padding:EdgeInsets.all(8.0), child: Text('${index + 1}')),
+                                Padding(padding:EdgeInsets.all(8.0), child: Text(normDocs[index].data()['norm']))
+                              ]))),
+                ))
+          : SizedBox.shrink());
 }
+
+String msg = """Примечание для выбора типа здания: 
+Ф1: Детские сады, дома престарелых и инвалидов, больницы, школы-интернаты, гостиницы, общежития, санаторий, многоквартирные жилые дома; 
+Ф2: Театры, кинотеатры, концертные залы, клубы, спортивные сооружения, музеи, выставки, танцевальные залы; 
+Ф3: Торговые дома, общественное питание, вокзалы, обслуживание;
+Ф4: школы, высшие учебные заведения, офисы;
+Ф5: Производственные здания, лабораторий; мастерские, склады, стоянки, хранилища для бумажных продуктов, сель. хоз. здания
+ """;
