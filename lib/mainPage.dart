@@ -1,11 +1,25 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
+import 'auth.dart';
+  String email;
 class MainPage extends StatefulWidget {
   @override
   _MainPageState createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
+
+
+  @override
+  void initState() {
+    email = FirebaseAuth.instance.currentUser.email;
+    if(mounted){
+      setState((){});
+    }
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     double w = MediaQuery.of(context).size.width;
@@ -45,6 +59,23 @@ class _MainPageState extends State<MainPage> {
               ],
             ),
                       ),
+          ),
+          SizedBox(height: 40),
+                    Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            alignment: WrapAlignment.center,
+            children: [
+              Text('Добро пожаловать, ${email!=''?email:'loading...'}!', style: TextStyle(fontSize: 16,)),
+              SizedBox(width: 10),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: (){
+                FirebaseAuth.instance.signOut();
+                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>AuthPage()));
+              },
+              child: Text('Выйти', style: TextStyle(fontSize: 12, color: Colors.red)))),
+            ],
           ),
         ],
       ),

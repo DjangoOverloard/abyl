@@ -3,11 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'HomePage.dart';
 
 List<DocumentSnapshot> normDocs = [];
 
 class WorkPage extends StatefulWidget {
+  final VoidCallback openScaff;
+
+  const WorkPage({Key key, this.openScaff}) : super(key: key);
   @override
   _WorkPageState createState() => _WorkPageState();
 }
@@ -52,7 +54,7 @@ class _WorkPageState extends State<WorkPage> {
               ),
               acceptButton(() {
                 fetch();
-              }),
+              }, widget.openScaff),
             ],
           ),
           SizedBox(height: 20),
@@ -98,7 +100,7 @@ Widget typeSelector(setst) {
   );
 }
 
-Widget acceptButton(callBuild) {
+Widget acceptButton(callBuild, openScaff) {
   return MouseRegion(
     cursor: SystemMouseCursors.click,
     child: GestureDetector(
@@ -106,9 +108,7 @@ Widget acceptButton(callBuild) {
         if (curValue != '') {
           callBuild();
         } else {
-          scaff.currentState.showSnackBar(SnackBar(
-            content: Text('Выберите тип здания'),
-          ));
+          openScaff();
         }
       },
       child: Container(

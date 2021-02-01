@@ -8,7 +8,6 @@ import 'mainPage.dart';
 
 
 int curPage = 0;
-  GlobalKey <ScaffoldState> scaff = new GlobalKey<ScaffoldState>();
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,6 +15,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  GlobalKey <ScaffoldState> scaff = GlobalKey<ScaffoldState>();
+
 
 
   changePage(val){
@@ -68,7 +69,13 @@ class _HomePageState extends State<HomePage> {
           ),
                 child: AnimatedSwitcher(
             duration: Duration(milliseconds: 300),
-            child: curPage == 0?MainPage():curPage == 1?WorkPage():curPage == 2?CreditPage():ContactsPage(),
+            child: curPage == 0?MainPage():curPage == 1?WorkPage(
+              openScaff: (){
+                scaff.currentState.showSnackBar(SnackBar(
+            content: Text('Выберите тип здания'),
+          ));
+              },              
+            ):curPage == 2?CreditPage():ContactsPage(),
           ),
         ),
       ),
